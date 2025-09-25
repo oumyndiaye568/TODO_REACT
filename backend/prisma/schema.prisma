@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:/home/ndeye-oumy-ndiaye/dev.db"
+}
+
+model Tache {
+  id          Int          @id @default(autoincrement())
+  libelle     String
+  description String
+  status      String       @default("EN_COURS")
+  userId      Int
+  user        User         @relation(fields: [userId], references: [id])
+  photo       String?
+  voiceMessage String?
+  permission  Permission[]
+  Historique  Historique[]
+}
+
+
+
+model User {
+  id         Int          @id @default(autoincrement())
+  fullname   String
+  username   String       @unique
+  password   String
+  isTestUser Boolean      @default(false)
+  taches     Tache[]
+  Permission Permission[]
+  Historique Historique[]
+}
+
+model Permission {
+  id     Int @id @default(autoincrement())
+  userId Int
+  taskId Int
+
+  user User  @relation(fields: [userId], references: [id])
+  task Tache @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, taskId])
+}
+
+model Historique {
+  id     Int      @id @default(autoincrement())
+  action String // "lecture" | "modification" | "suppression" | "création"
+  date   DateTime @default(now())
+
+  // Relations
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  tacheId Int?
+  tache   Tache? @relation(fields: [tacheId], references: [id], onDelete: Cascade)
+}
